@@ -1,42 +1,140 @@
-.card {
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 16px;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    background: #fff;
+.container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
 }
 
-.form {
+.controls {
+    margin: 20px 0;
     display: flex;
+    gap: 10px;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 16px;
+}
 
-    label {
-        display: flex;
-        flex-direction: column;
-        font-size: 14px;
-        gap: 4px;
-    }
+select,
+button {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    background: white;
+}
 
-    input,
-    select {
-        padding: 6px;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-    }
+select {
+    min-width: 200px;
 }
 
 button {
-    padding: 6px 12px;
-    background: #2563eb;
-    border: none;
+    background: #007bff;
     color: white;
-    border-radius: 6px;
     cursor: pointer;
+    border: none;
 }
 
-.result p {
-    margin: 4px 0;
+button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+    background: #0056b3;
+}
+
+.prediction-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 15px 0;
+    border-left: 4px solid #007bff;
+}
+
+.prediction-info h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.prediction-info p {
+    margin: 0;
+    color: #666;
+}
+
+.chart-container {
+    margin: 30px 0;
+    height: 400px;
+    position: relative;
+}
+
+.data-table {
+    margin-top: 30px;
+    overflow-x: auto;
+}
+
+.data-table h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+th,
+td {
+    padding: 12px 15px;
+    text-align: right;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background: #f8f9fa;
+    font-weight: bold;
+    color: #333;
+}
+
+tr:hover {
+    background: #f5f5f5;
+}
+
+.positive {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.negative {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 15px 0;
+    border: 1px solid #f5c6cb;
+}
+
+@media (max-width: 768px) {
+    .controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    select,
+    button {
+        width: 100%;
+    }
 }

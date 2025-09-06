@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PredictionsService } from '../../services/predictions.service';
 import { BaseChartDirective } from 'ng2-charts';
-import { ChartConfiguration, Chart } from 'chart.js';
+import { ChartConfiguration } from 'chart.js';
+import { PredictionsService, PredictionHistory } from '../../services/prediction.service'; // Assicurati che il percorso sia corretto
 
 @Component({
   selector: 'app-history',
@@ -13,16 +13,17 @@ import { ChartConfiguration, Chart } from 'chart.js';
   styleUrls: ['./history.component.scss']
 })
 export class HistoryComponent implements OnInit {
-  tickers = ['AAPL', 'MSFT', 'NVDA'];
+  // Cambia i ticker con quelli italiani
+  tickers = ['ENEL.MI', 'ENI.MI', 'G.MI', 'ISP.MI', 'UCG.MI'];
   ticker = this.tickers[0];
   limit = 10;
-  rows: any[] = [];
+  rows: PredictionHistory[] = []; // Usa l'interfaccia corretta
 
   lineChartData: ChartConfiguration<'line'>['data'] = {
     labels: [],
     datasets: [{
       data: [],
-      label: 'yhat',
+      label: 'Previsione (yhat)',
       borderColor: '#2563eb',
       backgroundColor: 'rgba(37,99,235,0.1)',
       fill: true,
@@ -61,7 +62,7 @@ export class HistoryComponent implements OnInit {
     }
   };
 
-  constructor(private api: PredictionsService) {}
+  constructor(private predictionsService: PredictionsService) {} // Nome corretto del servizio
 
   async ngOnInit() { 
     await this.load(); 
@@ -69,7 +70,8 @@ export class HistoryComponent implements OnInit {
 
   async load() {
     try {
-      this.rows = await this.api.history(this.ticker, this.limit);
+      // Usa il metodo history() che ora esiste
+      this.rows = await this.predictionsService.history(this.ticker, this.limit).toPromise() || [];
       
       // Crea nuovi array per forzare l'aggiornamento
       const newLabels = this.rows.map(r => new Date(r.ts).toLocaleDateString('it-IT'));

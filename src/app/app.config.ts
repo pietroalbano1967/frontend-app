@@ -1,15 +1,17 @@
 import { ApplicationConfig } from '@angular/core';
-import { provideRouter, Routes } from '@angular/router';
-import { PredictComponent } from './component/predict/predict.component';
-import { HistoryComponent } from './component/history/history.component';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
-const routes: Routes = [
-  { path: '', redirectTo: 'predict', pathMatch: 'full' },
-  { path: 'predict', component: PredictComponent },
-  { path: 'history', component: HistoryComponent },
-  { path: '**', redirectTo: 'predict' }
-];
+import { routes } from './app.routes';
+import { PredictComponent } from './component/predict/predict.component';
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideRouter(routes)]
+  providers: [
+    provideRouter(routes),
+    provideHttpClient(),
+    provideCharts(withDefaultRegisterables())
+  ]
 };
+
+export { PredictComponent };

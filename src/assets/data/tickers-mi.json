@@ -1,0 +1,152 @@
+[
+  {
+    "symbol": "ENEL.MI",
+    "name": "Enel",
+    "type": "Energia"
+  },
+  {
+    "symbol": "ENI.MI",
+    "name": "Eni",
+    "type": "Energia"
+  },
+  {
+    "symbol": "ISP.MI",
+    "name": "Intesa Sanpaolo",
+    "type": "Banca"
+  },
+  {
+    "symbol": "UCG.MI",
+    "name": "Unicredit",
+    "type": "Banca"
+  },
+  {
+    "symbol": "STM.MI",
+    "name": "STMicroelectronics",
+    "type": "Tecnologia"
+  },
+  {
+    "symbol": "LUX.MI",
+    "name": "Luxottica",
+    "type": "Moda"
+  },
+  {
+    "symbol": "ATL.MI",
+    "name": "Atlantia",
+    "type": "Infrastrutture"
+  },
+  {
+    "symbol": "A2A.MI",
+    "name": "A2A",
+    "type": "Servizi/Energia"
+  },
+  {
+    "symbol": "PRY.MI",
+    "name": "Prysmian",
+    "type": "Industria"
+  },
+  {
+    "symbol": "BMED.MI",
+    "name": "Banco BPM",
+    "type": "Banca"
+  },
+  {
+    "symbol": "CNHI.MI",
+    "name": "CNH Industrial",
+    "type": "Industria"
+  },
+  {
+    "symbol": "TEN.MI",
+    "name": "Tenaris",
+    "type": "Energia/Industria"
+  },
+  {
+    "symbol": "MONC.MI",
+    "name": "Moncler",
+    "type": "Moda"
+  },
+  {
+    "symbol": "JUVE.MI",
+    "name": "Juventus FC",
+    "type": "Sport"
+  },
+  {
+    "symbol": "FCA.MI",
+    "name": "Fiat Chrysler",
+    "type": "Auto"
+  },
+  {
+    "symbol": "TRN.MI",
+    "name": "Terna",
+    "type": "Energia"
+  },
+  {
+    "symbol": "REC.MI",
+    "name": "Recordati",
+    "type": "Farmaceutica"
+  },
+  {
+    "symbol": "BAMI.MI",
+    "name": "Banca Mediolanum",
+    "type": "Banca"
+  },
+  {
+    "symbol": "SPM.MI",
+    "name": "Saipem",
+    "type": "Energia"
+  },
+  {
+    "symbol": "IG.MI",
+    "name": "Italgas",
+    "type": "Servizi"
+  },
+  {
+    "symbol": "SRG.MI",
+    "name": "Snam",
+    "type": "Energia"
+  },
+  {
+    "symbol": "RACE.MI",
+    "name": "Ferrari",
+    "type": "Auto"
+  },
+  {
+    "symbol": "BRI.MI",
+    "name": "Brembo",
+    "type": "Industria"
+  },
+  {
+    "symbol": "CARR.MI",
+    "name": "Carraro",
+    "type": "Industria"
+  },
+  {
+    "symbol": "ERG.MI",
+    "name": "ERG",
+    "type": "Energia Rinnovabile"
+  },
+  {
+    "symbol": "IGD.MI",
+    "name": "IGD",
+    "type": "Immobiliare"
+  },
+  {
+    "symbol": "TIT.MI",
+    "name": "TIM",
+    "type": "Telecomunicazioni"
+  },
+  {
+    "symbol": "POST.MI",
+    "name": "Poste Italiane",
+    "type": "Servizi"
+  },
+  {
+    "symbol": "ACE.MI",
+    "name": "Acea",
+    "type": "Energia/Servizi"
+  },
+  {
+    "symbol": "DIA.MI",
+    "name": "Diasorin",
+    "type": "Biotech"
+  }
+]

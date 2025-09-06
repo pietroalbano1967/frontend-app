@@ -1,53 +1,53 @@
-<div class="card">
-    <h2>Storico Previsioni</h2>
-    <form (ngSubmit)="load()" class="form">
-        <label>
-            Ticker
-            <select [(ngModel)]="ticker" name="ticker">
-                @for (t of tickers; track t) {
-                <option [value]="t">{{ t }}</option>
-                }
-            </select>
-        </label>
-        <label>
-            Limite
-            <input type="number" [(ngModel)]="limit" name="limit" />
-        </label>
-        <button type="submit">Carica</button>
-    </form>
-</div>
+<div class="container">
+    <h2>Cronologia Previsioni</h2>
 
-@if (rows.length) {
-<div class="card chart">
+    <div class="controls">
+        <select [(ngModel)]="ticker" (change)="load()">
+            <option *ngFor="let t of tickers" [value]="t">{{t}}</option>
+        </select>
+
+        <select [(ngModel)]="limit" (change)="load()">
+            <option value="5">Ultime 5</option>
+            <option value="10">Ultime 10</option>
+            <option value="20">Ultime 20</option>
+            <option value="50">Ultime 50</option>
+        </select>
+
+        <button (click)="load()">Aggiorna</button>
+    </div>
+
     <div class="chart-container">
-        <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="'line'">
+        <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" type="line">
         </canvas>
     </div>
-</div>
-}
 
-@if (rows.length) {
-<div class="card">
-    <h3>Tabella</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>TS</th>
-                <th>yhat</th>
-                <th>Model</th>
-                <th>Creato</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (r of rows; track r) {
-            <tr>
-                <td>{{ r.ts | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td>{{ r.yhat | number:'1.2-2' }}</td>
-                <td>{{ r.model }}</td>
-                <td>{{ r.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
-            </tr>
-            }
-        </tbody>
-    </table>
+    <div class="history-table" *ngIf="rows.length > 0">
+        <h3>Dettagli Previsioni ({{rows.length}})</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Ticker</th>
+                    <th>Previsione (yhat)</th>
+                    <th>Limite Inferiore</th>
+                    <th>Limite Superiore</th>
+                    <th>Creazione</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let r of rows">
+                    <td>{{ r.ts | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ r.ticker }}</td>
+                    <td>{{ r.yhat | number:'1.2-2' }}</td>
+                    <td>{{ r.yhat_lower | number:'1.2-2' }}</td>
+                    <td>{{ r.yhat_upper | number:'1.2-2' }}</td>
+                    <td>{{ r.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="no-data" *ngIf="rows.length === 0">
+        <p>Nessun dato storico disponibile</p>
+    </div>
 </div>
-}

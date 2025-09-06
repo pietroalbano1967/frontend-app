@@ -1,40 +1,57 @@
-<div class="card">
-    <h2>Previsione</h2>
-    <form (ngSubmit)="predict()" class="form">
-        <label>
-            Ticker
-            <select [(ngModel)]="ticker" name="ticker">
-                <option *ngFor="let t of tickers" [value]="t">{{ t }}</option>
-            </select>
-        </label>
+<div class="container">
+    <h2>Predizioni Borsa Italiana</h2>
 
-        <label>
-            Lookback
-            <input type="number" [(ngModel)]="lookback" name="lookback" />
-        </label>
+    <div class="controls">
+        <!-- Correggi questa linea: passa l'evento $event -->
+        <select [ngModel]="selectedTicker" (ngModelChange)="onTickerChange($event)">
+            @for (ticker of tickers; track ticker.symbol) {
+            <option [value]="ticker.symbol">
+                {{ticker.name}} ({{ticker.symbol}})
+            </option>
+            }
+        </select>
 
-        <label>
-            Step (min)
-            <input type="number" [(ngModel)]="stepMinutes" name="stepMinutes" />
-        </label>
-
-        <button type="submit" [disabled]="loading">Predici</button>
-    </form>
-
-    <div *ngIf="result" class="result">
-        <h3>Risultato</h3>
-        <p>Ticker: {{ result.ticker }}</p>
-        <p>TS: {{ result.ts }}</p>
-        <p>yhat: {{ result.yhat | number:'1.2-2' }}</p>
-        <p>Model: {{ result.model }}</p>
-        <p>n_obs: {{ result.n_obs }}</p>
+        <button (click)="predict()" [disabled]="isLoading">
+            @if (isLoading) {
+            Caricamento...
+            } @else {
+            Genera Predizione
+            }
+        </button>
     </div>
-</div>
 
-<div class="card" *ngIf="lastSaved">
-    <h2>Ultima previsione salvata</h2>
-    <p>TS: {{ lastSaved.ts }}</p>
-    <p>yhat: {{ lastSaved.yhat | number:'1.2-2' }}</p>
-    <p>Model: {{ lastSaved.model }}</p>
-    <p>Creato: {{ lastSaved.created_at }}</p>
+    @if (prediction) {
+    <div class="prediction-info">
+        <h3>Predizioni per i prossimi {{prediction.predicted.length}} giorni</h3>
+        <p>Confidenza: {{prediction.confidence * 100 | number:'1.0-0'}}%</p>
+    </div>
+    }
+
+    <div class="chart-container">
+        <canvas id="stock-chart"></canvas>
+    </div>
+
+    @if (stockData.length) {
+    <div class="data-table">
+        <h3>Ultimi 10 giorni</h3>
+        <table>
+            <tr>
+                <th>Data</th>
+                <th>Apertura</th>
+                <th>Chiusura</th>
+                <th>Variazione</th>
+            </tr>
+            @for (day of stockData.slice(-10); track day.date) {
+            <tr>
+                <td>{{day.date}}</td>
+                <td>{{day.open | currency:'EUR'}}</td>
+                <td>{{day.close | currency:'EUR'}}</td>
+                <td [class]="day.close > day.open ? 'positive' : 'negative'">
+                    {{((day.close - day.open) / day.open * 100) | number:'1.2-2'}}%
+                </td>
+            </tr>
+            }
+        </table>
+    </div>
+    }
 </div>
