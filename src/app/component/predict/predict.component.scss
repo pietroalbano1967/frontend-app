@@ -1,0 +1,60 @@
+.card {
+    max-width: 720px;
+    margin: 24px auto;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.form {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    align-items: end;
+
+    label {
+        display: flex;
+        flex-direction: column;
+        font-size: 14px;
+        gap: 6px;
+    }
+
+    input {
+        padding: 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+    }
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #2563eb;
+    color: #fff;
+}
+
+button[disabled] {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.block {
+    margin-top: 16px;
+}
+
+.note {
+    color: #6b7280;
+}
+
+.error {
+    color: #b91c1c;
+    white-space: pre-wrap;
+}

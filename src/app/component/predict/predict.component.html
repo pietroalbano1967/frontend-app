@@ -1,0 +1,49 @@
+<div class="card">
+    <h2>Previsione</h2>
+
+    <form (ngSubmit)="doPredict()" class="form" autocomplete="off">
+        <label>
+            Ticker
+            <input [(ngModel)]="ticker" name="ticker" required />
+        </label>
+
+        <label>
+            Lookback
+            <input type="number" [(ngModel)]="lookback" name="lookback" min="20" />
+        </label>
+
+        <label>
+            Step (min)
+            <input type="number" [(ngModel)]="stepMinutes" name="stepMinutes" min="1" />
+        </label>
+
+        <div class="actions">
+            <button type="submit" [disabled]="loading">Predici</button>
+            <button type="button" (click)="loadLatest()" [disabled]="loading">Ultima</button>
+        </div>
+    </form>
+
+    <div *ngIf="loading" class="note">Caricamento…</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <div *ngIf="pred" class="block">
+        <h3>Risultato</h3>
+        <ul>
+            <li><b>Ticker:</b> {{ pred.ticker }}</li>
+            <li><b>TS:</b> {{ pred.ts }}</li>
+            <li><b>yhat:</b> {{ pred.yhat | number:'1.2-2' }}</li>
+            <li><b>Model:</b> {{ pred.model }}</li>
+            <li><b>n_obs:</b> {{ pred.n_obs }}</li>
+        </ul>
+    </div>
+
+    <div *ngIf="latest" class="block">
+        <h3>Ultima previsione salvata</h3>
+        <ul>
+            <li><b>TS:</b> {{ latest.ts }}</li>
+            <li><b>yhat:</b> {{ latest.yhat | number:'1.2-2' }}</li>
+            <li><b>Model:</b> {{ latest.model }}</li>
+            <li><b>Creato:</b> {{ latest.created_at }}</li>
+        </ul>
+    </div>
+</div>
