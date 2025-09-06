@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
+import { Observable, of } from 'rxjs';
+import { Ticker } from '../services/tickers.service';
 export interface StockData {
   date: string;
   open: number;
@@ -60,5 +60,21 @@ export class PredictionsService {
     return this.http.get<PredictionHistory[]>(
       `${this.apiUrl}/api/predictions/history?ticker=${ticker}&limit=${limit}`
     );
+  }
+  // ASSICURATI CHE QUESTO METODO ESISTA
+  getMibTickers(): Observable<Ticker[]> {
+    const fallbackTickers: Ticker[] = [
+      { symbol: 'ENEL.MI', name: 'Enel' },
+      { symbol: 'ENI.MI', name: 'Eni' },
+      { symbol: 'G.MI', name: 'Generali' },
+      { symbol: 'ISP.MI', name: 'Intesa Sanpaolo' },
+      { symbol: 'UCG.MI', name: 'UniCredit' }
+    ];
+
+    try {
+      return this.http.get<Ticker[]>(`${this.apiUrl}/api/mib-tickers`);
+    } catch (error) {
+      return of(fallbackTickers);
+    }
   }
 }

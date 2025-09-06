@@ -13,6 +13,13 @@
         <button (click)="predict()" [disabled]="isLoading">
             {{isLoading ? 'Caricamento...' : 'Genera Predizione'}}
         </button>
+
+        <!-- Aggiungi controlli zoom per il grafico -->
+        <div class="zoom-controls" *ngIf="chart">
+            <button (click)="zoomIn()" title="Zoom In">+</button>
+            <button (click)="zoomOut()" title="Zoom Out">-</button>
+            <button (click)="resetZoom()" title="Reset Zoom">⟳</button>
+        </div>
     </div>
 
     @if (prediction) {
@@ -22,9 +29,9 @@
     </div>
     }
 
-    <!-- Aggiungi un wrapper per il grafico -->
-    <div class="chart-wrapper">
-        <div class="chart-container">
+    <!-- Container del grafico con overflow per lo zoom -->
+    <div class="chart-zoom-container">
+        <div class="chart-container" #chartContainer>
             <canvas id="stock-chart"></canvas>
         </div>
     </div>

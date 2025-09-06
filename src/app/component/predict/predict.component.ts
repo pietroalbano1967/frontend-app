@@ -1,12 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Chart, ChartConfiguration } from 'chart.js/auto';
-import { OnDestroy, HostListener } from '@angular/core';
-// Importa CORRETTAMENTE i servizi - verifica il percorso!
-import { PredictionsService, StockData, PredictionResponse } from '../../services/prediction.service';
-import { TickersService, Ticker } from '../../services/tickers.service';
-
+import { Chart, ChartConfiguration, Scale } from 'chart.js';
+import zoomPlugin from 'chartjs-plugin-zoom';
+import { PredictionsService as PredictService, StockData, PredictionResponse } from '../../services/prediction.service'; // Assicurati che il percorso sia corretto
+import { Ticker } from '../../services/tickers.service';
+// Registra il plugin
+Chart.register(zoomPlugin);
 @Component({
   selector: 'app-predict',
   standalone: true,
@@ -15,63 +15,84 @@ import { TickersService, Ticker } from '../../services/tickers.service';
   styleUrls: ['./predict.component.scss']
 })
 export class PredictComponent implements OnInit, OnDestroy {
+  @ViewChild('chartContainer') chartContainer!: ElementRef;
+  
   selectedTicker = 'ENEL.MI';
   stockData: StockData[] = [];
   prediction: PredictionResponse | null = null;
   chart: Chart | null = null;
   tickers: Ticker[] = [];
   isLoading = false;
-  private resizeObserver: ResizeObserver | null = null;
+  
+  // Variabili per lo zoom
+  private zoomLevel = 1;
+  private readonly maxZoom = 3;
+  private readonly minZoom = 0.5;
+  private readonly zoomStep = 0.2;
 
-  constructor(
-    private predictionsService: PredictionsService,
-    private tickersService: TickersService
-  ) {}
+  constructor(private predictService: PredictService) {}
 
   ngOnInit(): void {
     this.loadTickers();
     this.loadStockData();
   }
+
   ngOnDestroy(): void {
-    if (this.resizeObserver) {
-      this.resizeObserver.disconnect();
+    if (this.chart) {
+      this.chart.destroy();
     }
   }
-  @HostListener('window:resize')
-  onWindowResize() {
-    this.updateChartSize();
+
+  // Metodi per lo zoom
+  zoomIn(): void {
+    if (this.zoomLevel < this.maxZoom) {
+      this.zoomLevel += this.zoomStep;
+      this.applyZoom();
+    }
   }
-  
-  private setupResizeObserver() {
-    if (typeof ResizeObserver !== 'undefined') {
-      const chartContainer = document.querySelector('.chart-container');
-      if (chartContainer) {
-        this.resizeObserver = new ResizeObserver(() => {
-          this.updateChartSize();
-        });
-        this.resizeObserver.observe(chartContainer);
+
+  zoomOut(): void {
+    if (this.zoomLevel > this.minZoom) {
+      this.zoomLevel -= this.zoomStep;
+      this.applyZoom();
+    }
+  }
+
+  resetZoom(): void {
+    this.zoomLevel = 1;
+    this.applyZoom();
+  }
+
+  private applyZoom(): void {
+    if (this.chartContainer) {
+      const container = this.chartContainer.nativeElement;
+      container.style.transform = `scale(${this.zoomLevel})`;
+      container.style.transformOrigin = 'center center';
+    }
+  }
+
+  // Gestione zoom con mouse wheel solo sul grafico
+  @HostListener('wheel', ['$event'])
+  onWheel(event: WheelEvent) {
+    const target = event.target as HTMLElement;
+    if (target.closest('.chart-zoom-container')) {
+      event.preventDefault();
+      if (event.deltaY < 0) {
+        this.zoomIn();
+      } else {
+        this.zoomOut();
       }
     }
   }
 
-  private updateChartSize() {
-    if (this.chart) {
-      // Forza il ridimensionamento del grafico
-      this.chart.resize();
-      this.chart.update('none'); // 'none' per evitare animazioni
-    }
-  }
-  
-  
-  
+  // Metodi esistenti
   loadTickers(): void {
-    this.tickersService.getMibTickers().subscribe({
+    this.predictService.getMibTickers().subscribe({
       next: (tickers: Ticker[]) => {
         this.tickers = tickers;
       },
       error: (err: any) => {
         console.error('Error loading tickers:', err);
-        // Fallback manuale
         this.tickers = [
           { symbol: 'ENEL.MI', name: 'Enel' },
           { symbol: 'ENI.MI', name: 'Eni' },
@@ -83,7 +104,7 @@ export class PredictComponent implements OnInit, OnDestroy {
 
   loadStockData(): void {
     this.isLoading = true;
-    this.predictionsService.getStockData(this.selectedTicker).subscribe({
+    this.predictService.getStockData(this.selectedTicker).subscribe({
       next: (response: {data: StockData[]}) => {
         this.stockData = response.data;
         this.createChart();
@@ -91,24 +112,6 @@ export class PredictComponent implements OnInit, OnDestroy {
       },
       error: (err: any) => {
         console.error('Error loading stock data:', err);
-        this.isLoading = false;
-      }
-    });
-  }
-
-  predict(): void {
-    this.isLoading = true;
-    this.predictionsService.predictStock({
-      ticker: this.selectedTicker,
-      forecast_days: 10
-    }).subscribe({
-      next: (prediction: PredictionResponse) => {
-        this.prediction = prediction;
-        this.updateChartWithPrediction();
-        this.isLoading = false;
-      },
-      error: (err: any) => {
-        console.error('Prediction error:', err);
         this.isLoading = false;
       }
     });
@@ -127,21 +130,80 @@ export class PredictComponent implements OnInit, OnDestroy {
           label: 'Prezzo di Chiusura',
           data: this.stockData.map(d => d.close),
           borderColor: 'rgb(75, 192, 192)',
-          tension: 0.1
+          backgroundColor: 'rgba(75, 192, 192, 0.1)',
+          fill: true,
+          tension: 0.1,
+          pointRadius: 3,
+          pointHoverRadius: 6
         }]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           title: {
             display: true,
-            text: `Andamento ${this.selectedTicker}`
+            text: `Andamento ${this.selectedTicker}`,
+            font: { size: 16 }
+          },
+          legend: {
+            display: true,
+            position: 'top'
+          },
+          zoom: {
+            zoom: {
+              wheel: {
+                enabled: true,
+              },
+              pinch: {
+                enabled: true
+              },
+              mode: 'xy'
+            }
           }
+        },
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45
+            }
+          },
+          y: {
+            beginAtZero: false
+          }
+        },
+        interaction: {
+          mode: 'index',
+          intersect: false
         }
       }
     };
 
     this.chart = new Chart('stock-chart', config);
+  }
+
+  onTickerChange(newTicker: string): void {
+    this.selectedTicker = newTicker;
+    this.loadStockData();
+  }
+
+  predict(): void {
+    this.isLoading = true;
+    this.predictService.predictStock({
+      ticker: this.selectedTicker,
+      forecast_days: 10
+    }).subscribe({
+      next: (prediction: PredictionResponse) => {
+        this.prediction = prediction;
+        this.updateChartWithPrediction();
+        this.isLoading = false;
+      },
+      error: (err: any) => {
+        console.error('Prediction error:', err);
+        this.isLoading = false;
+      }
+    });
   }
 
   updateChartWithPrediction(): void {
@@ -156,10 +218,5 @@ export class PredictComponent implements OnInit, OnDestroy {
     });
 
     this.chart.update();
-  }
-
-  onTickerChange(newTicker: string): void {
-    this.selectedTicker = newTicker;
-    this.loadStockData();
   }
 }
