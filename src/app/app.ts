@@ -1,22 +1,40 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, RouterLink],
   template: `
-    <header class="topbar">
-      <a routerLink="/predict">Predict</a>
+    <header class="navbar">
+      <nav>
+        <a routerLink="/predict" routerLinkActive="active">Predict</a>
+        <a routerLink="/history" routerLinkActive="active">History</a>
+      </nav>
     </header>
     <main class="container">
       <router-outlet></router-outlet>
     </main>
   `,
   styles: [`
-    .topbar{padding:10px;border-bottom:1px solid #eee}
-    .container{padding:16px;max-width:960px;margin:0 auto}
-    a{margin-right:12px}
+    .navbar {
+      background: #1f2937;
+      padding: 10px 20px;
+    }
+    nav a {
+      color: #f9fafb;
+      margin-right: 16px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    nav a.active {
+      text-decoration: underline;
+    }
+    .container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
   `]
 })
 export class App {}

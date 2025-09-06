@@ -1,49 +1,40 @@
 <div class="card">
     <h2>Previsione</h2>
-
-    <form (ngSubmit)="doPredict()" class="form" autocomplete="off">
+    <form (ngSubmit)="predict()" class="form">
         <label>
             Ticker
-            <input [(ngModel)]="ticker" name="ticker" required />
+            <select [(ngModel)]="ticker" name="ticker">
+                <option *ngFor="let t of tickers" [value]="t">{{ t }}</option>
+            </select>
         </label>
 
         <label>
             Lookback
-            <input type="number" [(ngModel)]="lookback" name="lookback" min="20" />
+            <input type="number" [(ngModel)]="lookback" name="lookback" />
         </label>
 
         <label>
             Step (min)
-            <input type="number" [(ngModel)]="stepMinutes" name="stepMinutes" min="1" />
+            <input type="number" [(ngModel)]="stepMinutes" name="stepMinutes" />
         </label>
 
-        <div class="actions">
-            <button type="submit" [disabled]="loading">Predici</button>
-            <button type="button" (click)="loadLatest()" [disabled]="loading">Ultima</button>
-        </div>
+        <button type="submit" [disabled]="loading">Predici</button>
     </form>
 
-    <div *ngIf="loading" class="note">Caricamento…</div>
-    <div *ngIf="error" class="error">{{ error }}</div>
-
-    <div *ngIf="pred" class="block">
+    <div *ngIf="result" class="result">
         <h3>Risultato</h3>
-        <ul>
-            <li><b>Ticker:</b> {{ pred.ticker }}</li>
-            <li><b>TS:</b> {{ pred.ts }}</li>
-            <li><b>yhat:</b> {{ pred.yhat | number:'1.2-2' }}</li>
-            <li><b>Model:</b> {{ pred.model }}</li>
-            <li><b>n_obs:</b> {{ pred.n_obs }}</li>
-        </ul>
+        <p>Ticker: {{ result.ticker }}</p>
+        <p>TS: {{ result.ts }}</p>
+        <p>yhat: {{ result.yhat | number:'1.2-2' }}</p>
+        <p>Model: {{ result.model }}</p>
+        <p>n_obs: {{ result.n_obs }}</p>
     </div>
+</div>
 
-    <div *ngIf="latest" class="block">
-        <h3>Ultima previsione salvata</h3>
-        <ul>
-            <li><b>TS:</b> {{ latest.ts }}</li>
-            <li><b>yhat:</b> {{ latest.yhat | number:'1.2-2' }}</li>
-            <li><b>Model:</b> {{ latest.model }}</li>
-            <li><b>Creato:</b> {{ latest.created_at }}</li>
-        </ul>
-    </div>
+<div class="card" *ngIf="lastSaved">
+    <h2>Ultima previsione salvata</h2>
+    <p>TS: {{ lastSaved.ts }}</p>
+    <p>yhat: {{ lastSaved.yhat | number:'1.2-2' }}</p>
+    <p>Model: {{ lastSaved.model }}</p>
+    <p>Creato: {{ lastSaved.created_at }}</p>
 </div>

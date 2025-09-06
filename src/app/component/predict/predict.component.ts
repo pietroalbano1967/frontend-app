@@ -1,14 +1,7 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { api } from '../../api/axios';
-
-type PredictOut = {
-  ticker: string; ts: string; yhat: number; model: string; n_obs: number; lookback_used: number;
-};
-type LatestOut = {
-  ticker: string; ts: string; yhat: number; model: string; created_at: string | null;
-};
+import { FormsModule } from '@angular/forms';
+import { PredictionsService } from '../../services/predictions.service';
 
 @Component({
   selector: 'app-predict',
@@ -18,34 +11,26 @@ type LatestOut = {
   styleUrls: ['./predict.component.scss']
 })
 export class PredictComponent {
-  ticker = 'AAPL';
+  tickers = ['AAPL', 'MSFT', 'NVDA'];
+  ticker = this.tickers[0];
   lookback = 200;
   stepMinutes = 5;
 
+  result: any;
+  lastSaved: any;
   loading = false;
-  pred?: PredictOut;
-  latest?: LatestOut;
-  error?: string;
 
-  async doPredict() {
-    this.error = undefined; this.loading = true;
-    try {
-      const { data } = await api.post<PredictOut>('/predictions/predict', {
-        ticker: this.ticker, lookback: this.lookback, step_minutes: this.stepMinutes
-      });
-      this.pred = data;
-    } catch (e: any) {
-      this.error = typeof e === 'string' ? e : JSON.stringify(e);
-    } finally { this.loading = false; }
-  }
+  constructor(private api: PredictionsService) {}
 
-  async loadLatest() {
-    this.error = undefined; this.loading = true;
+  async predict() {
+    this.loading = true;
     try {
-      const { data } = await api.get<LatestOut>('/predictions/latest', { params: { ticker: this.ticker } });
-      this.latest = data;
-    } catch (e: any) {
-      this.error = typeof e === 'string' ? e : JSON.stringify(e);
-    } finally { this.loading = false; }
+      this.result = await this.api.predict(this.ticker, this.lookback, this.stepMinutes);
+      this.lastSaved = await this.api.latest(this.ticker);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      this.loading = false;
+    }
   }
 }

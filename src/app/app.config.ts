@@ -1,13 +1,15 @@
 import { ApplicationConfig } from '@angular/core';
-import { provideRouter, Routes, withInMemoryScrolling } from '@angular/router';
+import { provideRouter, Routes } from '@angular/router';
 import { PredictComponent } from './component/predict/predict.component';
+import { HistoryComponent } from './component/history/history.component';
 
 const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'predict' },
+  { path: '', redirectTo: 'predict', pathMatch: 'full' },
   { path: 'predict', component: PredictComponent },
+  { path: 'history', component: HistoryComponent },
   { path: '**', redirectTo: 'predict' }
 ];
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled' }))]
+  providers: [provideRouter(routes)]
 };

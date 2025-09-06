@@ -1,20 +1,28 @@
 import { Injectable } from '@angular/core';
-import { api } from '../api/axios';
+import axios from 'axios';
 
-export interface PredictIn { ticker: string; lookback?: number; step_minutes?: number; }
-export interface PredictOut { ticker: string; ts: string; yhat: number; model: string; n_obs: number; lookback_used: number; }
-export interface LatestOut { ticker: string; ts: string; yhat: number; model: string; created_at: string | null; }
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root'
+})
 export class PredictionsService {
-  predict(body: PredictIn) {
-    return api.post<PredictOut>('/predictions/predict', body).then(r => r.data);
-  }
-  latest(ticker: string) {
-    return api.get<LatestOut>('/predictions/latest', { params: { ticker } }).then(r => r.data);
-  }
-  history(ticker: string, limit = 20) {
-  return api.get<any[]>('/predictions/history', { params: { ticker, limit } }).then(r => r.data);
-}
+  private baseUrl = 'http://localhost:3000/api';
 
+  async predict(ticker: string, lookback: number, stepMinutes: number) {
+    const res = await axios.post(`${this.baseUrl}/predictions/predict`, {
+      ticker,
+      lookback,
+      step_minutes: stepMinutes
+    });
+    return res.data;
+  }
+
+  async latest(ticker: string) {
+    const res = await axios.get(`${this.baseUrl}/predictions/latest?ticker=${ticker}`);
+    return res.data;
+  }
+
+  async history(ticker: string, limit: number) {
+    const res = await axios.get(`${this.baseUrl}/predictions/history?ticker=${ticker}&limit=${limit}`);
+    return res.data;
+  }
 }
