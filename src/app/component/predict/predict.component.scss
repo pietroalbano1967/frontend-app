@@ -3,6 +3,9 @@
     max-width: 1200px;
     margin: 0 auto;
     font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .controls {
@@ -60,15 +63,33 @@ button:hover:not(:disabled) {
     color: #666;
 }
 
+/* Wrapper per il grafico */
+.chart-wrapper {
+    width: 100%;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: white;
+}
+
 .chart-container {
-    margin: 30px 0;
-    height: 400px;
     position: relative;
+    height: 400px;
+    width: 100%;
+    min-height: 400px;
+}
+
+/* Assicurati che il canvas si ridimensioni correttamente */
+#stock-chart {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .data-table {
     margin-top: 30px;
     overflow-x: auto;
+    width: 100%;
 }
 
 .data-table h3 {
@@ -83,6 +104,7 @@ table {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 5px;
     overflow: hidden;
+    table-layout: fixed;
 }
 
 th,
@@ -90,6 +112,7 @@ td {
     padding: 12px 15px;
     text-align: right;
     border-bottom: 1px solid #ddd;
+    word-wrap: break-word;
 }
 
 th {
@@ -127,14 +150,53 @@ tr:hover {
     border: 1px solid #f5c6cb;
 }
 
+/* Responsive design */
 @media (max-width: 768px) {
+    .container {
+        padding: 10px;
+        gap: 15px;
+    }
+
     .controls {
         flex-direction: column;
         align-items: stretch;
+        margin: 10px 0;
     }
 
     select,
     button {
         width: 100%;
+    }
+
+    .chart-container {
+        height: 300px;
+        min-height: 300px;
+    }
+
+    .data-table {
+        margin-top: 20px;
+    }
+
+    th,
+    td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+}
+
+/* Aggiungi questo per gestire il ridimensionamento del grafico */
+@media (max-width: 480px) {
+    .chart-container {
+        height: 250px;
+        min-height: 250px;
+    }
+
+    .prediction-info {
+        padding: 10px;
+        margin: 10px 0;
+    }
+
+    .prediction-info h3 {
+        font-size: 16px;
     }
 }

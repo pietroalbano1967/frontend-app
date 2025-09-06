@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, ChartConfiguration } from 'chart.js/auto';
-
+import { OnDestroy, HostListener } from '@angular/core';
 // Importa CORRETTAMENTE i servizi - verifica il percorso!
 import { PredictionsService, StockData, PredictionResponse } from '../../services/prediction.service';
 import { TickersService, Ticker } from '../../services/tickers.service';
@@ -14,13 +14,14 @@ import { TickersService, Ticker } from '../../services/tickers.service';
   templateUrl: './predict.component.html',
   styleUrls: ['./predict.component.scss']
 })
-export class PredictComponent implements OnInit {
+export class PredictComponent implements OnInit, OnDestroy {
   selectedTicker = 'ENEL.MI';
   stockData: StockData[] = [];
   prediction: PredictionResponse | null = null;
   chart: Chart | null = null;
   tickers: Ticker[] = [];
   isLoading = false;
+  private resizeObserver: ResizeObserver | null = null;
 
   constructor(
     private predictionsService: PredictionsService,
@@ -31,7 +32,38 @@ export class PredictComponent implements OnInit {
     this.loadTickers();
     this.loadStockData();
   }
+  ngOnDestroy(): void {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+  }
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.updateChartSize();
+  }
+  
+  private setupResizeObserver() {
+    if (typeof ResizeObserver !== 'undefined') {
+      const chartContainer = document.querySelector('.chart-container');
+      if (chartContainer) {
+        this.resizeObserver = new ResizeObserver(() => {
+          this.updateChartSize();
+        });
+        this.resizeObserver.observe(chartContainer);
+      }
+    }
+  }
 
+  private updateChartSize() {
+    if (this.chart) {
+      // Forza il ridimensionamento del grafico
+      this.chart.resize();
+      this.chart.update('none'); // 'none' per evitare animazioni
+    }
+  }
+  
+  
+  
   loadTickers(): void {
     this.tickersService.getMibTickers().subscribe({
       next: (tickers: Ticker[]) => {

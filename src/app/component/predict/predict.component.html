@@ -2,7 +2,6 @@
     <h2>Predizioni Borsa Italiana</h2>
 
     <div class="controls">
-        <!-- Correggi questa linea: passa l'evento $event -->
         <select [ngModel]="selectedTicker" (ngModelChange)="onTickerChange($event)">
             @for (ticker of tickers; track ticker.symbol) {
             <option [value]="ticker.symbol">
@@ -12,11 +11,7 @@
         </select>
 
         <button (click)="predict()" [disabled]="isLoading">
-            @if (isLoading) {
-            Caricamento...
-            } @else {
-            Genera Predizione
-            }
+            {{isLoading ? 'Caricamento...' : 'Genera Predizione'}}
         </button>
     </div>
 
@@ -27,8 +22,11 @@
     </div>
     }
 
-    <div class="chart-container">
-        <canvas id="stock-chart"></canvas>
+    <!-- Aggiungi un wrapper per il grafico -->
+    <div class="chart-wrapper">
+        <div class="chart-container">
+            <canvas id="stock-chart"></canvas>
+        </div>
     </div>
 
     @if (stockData.length) {
