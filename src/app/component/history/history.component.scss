@@ -38,11 +38,18 @@
 
 .chart {
     height: 400px;
+
+    .chart-container {
+        height: 100%;
+        min-height: 350px;
+        position: relative;
+    }
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 16px;
 }
 
 th,
@@ -50,4 +57,10 @@ td {
     border: 1px solid #d1d5db;
     padding: 8px;
     text-align: left;
+    font-size: 14px;
+}
+
+th {
+    background-color: #f9fafb;
+    font-weight: 600;
 }

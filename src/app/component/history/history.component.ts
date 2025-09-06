@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PredictionsService } from '../../services/predictions.service';
 import { BaseChartDirective } from 'ng2-charts';
-import { ChartConfiguration } from 'chart.js';
+import { ChartConfiguration, Chart } from 'chart.js';
 
 @Component({
   selector: 'app-history',
@@ -33,20 +33,60 @@ export class HistoryComponent implements OnInit {
 
   lineChartOptions: ChartConfiguration<'line'>['options'] = {
     responsive: true,
-    plugins: { legend: { display: true } },
+    maintainAspectRatio: false,
+    plugins: { 
+      legend: { 
+        display: true,
+        position: 'top'
+      } 
+    },
     scales: {
-      x: { ticks: { autoSkip: true, maxRotation: 45 } },
-      y: { beginAtZero: false }
+      x: { 
+        ticks: { 
+          autoSkip: true, 
+          maxRotation: 45,
+          font: {
+            size: 11
+          }
+        } 
+      },
+      y: { 
+        beginAtZero: false,
+        ticks: {
+          font: {
+            size: 11
+          }
+        }
+      }
     }
   };
 
   constructor(private api: PredictionsService) {}
 
-  async ngOnInit() { await this.load(); }
+  async ngOnInit() { 
+    await this.load(); 
+  }
 
   async load() {
-    this.rows = await this.api.history(this.ticker, this.limit);
-    this.lineChartData.labels = this.rows.map(r => new Date(r.ts).toLocaleDateString());
-    this.lineChartData.datasets[0].data = this.rows.map(r => r.yhat);
+    try {
+      this.rows = await this.api.history(this.ticker, this.limit);
+      
+      // Crea nuovi array per forzare l'aggiornamento
+      const newLabels = this.rows.map(r => new Date(r.ts).toLocaleDateString('it-IT'));
+      const newData = this.rows.map(r => r.yhat);
+      
+      // Aggiorna i dati mantenendo la reference dell'oggetto
+      this.lineChartData = {
+        ...this.lineChartData,
+        labels: newLabels,
+        datasets: [{
+          ...this.lineChartData.datasets[0],
+          data: newData
+        }]
+      };
+
+    } catch (error) {
+      console.error('Errore nel caricamento dati:', error);
+    }
   }
 }
