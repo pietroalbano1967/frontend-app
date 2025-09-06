@@ -3,12 +3,26 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, ChartConfiguration } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
-import { PredictionsService as PredictService, StockData, PredictionResponse } from '../../services/prediction.service'; // <-- path conforme al tuo progetto
+import { PredictionsService as PredictService, StockData, PredictionResponse } from '../../services/prediction.service';
 import { Ticker } from '../../services/tickers.service';
 import { firstValueFrom } from 'rxjs';
+import 'chartjs-adapter-date-fns';
 
-// Registra il plugin
+// Registra plugin
 Chart.register(zoomPlugin);
+
+// Tipo locale con date vere in memoria UI
+type UIStock = {
+  date: Date;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+};
+
+// Tipo per dataset XY numerico (timestamp, valore)
+type XYPoint = { x: number; y: number };
 
 @Component({
   selector: 'app-predict',
@@ -21,13 +35,16 @@ export class PredictComponent implements OnInit, OnDestroy {
   @ViewChild('chartContainer') chartContainer!: ElementRef;
 
   selectedTicker = 'ENEL.MI';
-  stockData: StockData[] = [];
+  stockData: UIStock[] = [];
   prediction: PredictionResponse | null = null;
-  chart: Chart | null = null;
+  chart: Chart<'line', XYPoint[], number> | null = null;
   tickers: Ticker[] = [];
   isLoading = false;
 
-  // Variabili per lo zoom
+  // Mostriamo solo dal 2025 in poi
+  private readonly fromDate2025 = new Date('2025-01-01');
+
+  // Zoom UI
   private zoomLevel = 1;
   private readonly maxZoom = 3;
   private readonly minZoom = 0.5;
@@ -41,9 +58,7 @@ export class PredictComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.chart) {
-      this.chart.destroy();
-    }
+    if (this.chart) this.chart.destroy();
   }
 
   // -----------------------
@@ -76,17 +91,13 @@ export class PredictComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Zoom con wheel solo nell'area grafico
   @HostListener('wheel', ['$event'])
   onWheel(event: WheelEvent) {
     const target = event.target as HTMLElement;
     if (target.closest('.chart-zoom-container')) {
       event.preventDefault();
-      if (event.deltaY < 0) {
-        this.zoomIn();
-      } else {
-        this.zoomOut();
-      }
+      if (event.deltaY < 0) this.zoomIn();
+      else this.zoomOut();
     }
   }
 
@@ -95,11 +106,8 @@ export class PredictComponent implements OnInit, OnDestroy {
   // -----------------------
   loadTickers(): void {
     this.predictService.getMibTickers().subscribe({
-      next: (tickers: Ticker[]) => {
-        this.tickers = tickers;
-      },
-      error: (err: any) => {
-        console.error('Error loading tickers:', err);
+      next: (tickers: Ticker[]) => (this.tickers = tickers),
+      error: () => {
         this.tickers = [
           { symbol: 'ENEL.MI', name: 'Enel' },
           { symbol: 'ENI.MI', name: 'Eni' },
@@ -113,7 +121,12 @@ export class PredictComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.predictService.getStockData(this.selectedTicker).subscribe({
       next: (response: { data: StockData[] }) => {
-        this.stockData = response.data ?? [];
+        // Converti string -> Date e filtra solo 2025+
+        const asDates: UIStock[] = response.data.map(d => ({
+          ...d,
+          date: new Date(d.date)
+        }));
+        this.stockData = asDates.filter(r => r.date >= this.fromDate2025);
         this.createChart();
         this.isLoading = false;
       },
@@ -129,19 +142,14 @@ export class PredictComponent implements OnInit, OnDestroy {
   // -----------------------
   getPredictionTableData(): any[] {
     if (!this.prediction) return [];
-
     return this.prediction.dates.map((date, index) => {
       const predicted = this.prediction!.predicted[index];
       const previousValue =
-        index === 0
-          ? this.stockData[this.stockData.length - 1]?.close
-          : this.prediction!.predicted[index - 1];
-
+        index === 0 ? this.stockData[this.stockData.length - 1]?.close : this.prediction!.predicted[index - 1];
       const change = previousValue ? ((predicted - previousValue) / previousValue) * 100 : 0;
-
       return {
-        date: date,
-        predicted: predicted,
+        date,
+        predicted,
         changePercentage: change.toFixed(2),
         changeClass: change >= 0 ? 'positive' : 'negative'
       };
@@ -150,16 +158,12 @@ export class PredictComponent implements OnInit, OnDestroy {
 
   getBullishDays(): number {
     if (!this.prediction) return 0;
-    return this.prediction.predicted.filter((value, index, array) => {
-      return index === 0 || value > array[index - 1];
-    }).length;
+    return this.prediction.predicted.filter((v, i, a) => i === 0 || v > a[i - 1]).length;
   }
 
   getBearishDays(): number {
     if (!this.prediction) return 0;
-    return this.prediction.predicted.filter((value, index, array) => {
-      return index > 0 && value < array[index - 1];
-    }).length;
+    return this.prediction.predicted.filter((v, i, a) => i > 0 && v < a[i - 1]).length;
   }
 
   getAveragePrediction(): number {
@@ -172,83 +176,57 @@ export class PredictComponent implements OnInit, OnDestroy {
   //        GRAFICO
   // -----------------------
   createChart(): void {
-    if (this.chart) {
-      this.chart.destroy();
-    }
+  if (this.chart) this.chart.destroy();
 
-    const config: ChartConfiguration = {
-      type: 'line',
-      data: {
-        labels: this.stockData.map(d => d.date),
-        datasets: [
-          {
-            label: 'Prezzo di Chiusura',
-            data: this.stockData.map(d => d.close),
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.1)',
-            fill: true,
-            tension: 0.1,
-            pointRadius: 3,
-            pointHoverRadius: 6
-          }
-        ]
+  const historicalXY = this.stockData.map(p => ({ x: p.date.getTime(), y: p.close }));
+
+  const config: ChartConfiguration<'line', XYPoint[], number> = {
+    type: 'line',
+    data: {
+      datasets: [{
+        label: 'Prezzo',
+        data: historicalXY,
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.08)',
+        borderWidth: 2,
+        tension: 0.2,
+        pointRadius: 2,
+        pointHoverRadius: 5,
+        fill: true
+      } as any]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      parsing: false,
+      normalized: true,
+      animation: false,
+      plugins: {
+        legend: { display: true, position: 'top' },
+        title: { display: true, text: `Andamento ${this.selectedTicker} (dal 2025 + 5 giorni previsione)` },
+        zoom: { zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' } },
+        decimation: { enabled: true, algorithm: 'lttb', samples: 500 }
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: {
-            display: true,
-            text: `Andamento ${this.selectedTicker}`,
-            font: { size: 16 }
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'day',
+            tooltipFormat: 'dd/MM/yyyy',
+            displayFormats: { day: 'dd/MM', month: 'MMM yyyy' }
           },
-          legend: {
-            display: true,
-            position: 'top'
-          },
-          zoom: {
-            zoom: {
-              wheel: { enabled: true },
-              pinch: { enabled: true },
-              mode: 'xy'
-            }
-          }
+          min: this.fromDate2025.getTime()     // parte dal 2025
+          // max lo imposteremo solo dopo la predizione
         },
-        scales: {
-          x: {
-            ticks: { maxRotation: 45, minRotation: 45 }
-          },
-          y: {
-            beginAtZero: false
-          }
-        },
-        interaction: {
-          mode: 'index',
-          intersect: false
-        }
-      }
-    };
+        y: { beginAtZero: false, ticks: { precision: 2 } }
+      },
+      interaction: { mode: 'index', intersect: false }
+    }
+  };
 
-    this.chart = new Chart('stock-chart', config);
-  }
+  this.chart = new Chart<'line', XYPoint[], number>('stock-chart', config);
+}
 
-  updateChartWithPrediction(): void {
-    if (!this.prediction || !this.chart) return;
-
-    // (opzionale) prevedi allineamento sulle labels esistenti
-    this.chart.data.datasets.push({
-      label: 'Predicted', // <— stessa label usata nel reset
-      data: [
-        ...Array(Math.max(0, this.stockData.length - this.prediction.predicted.length)).fill(null),
-        ...this.prediction.predicted
-      ],
-      borderColor: 'rgb(255, 99, 132)',
-      borderDash: [5, 5],
-      tension: 0.1
-    });
-
-    this.chart.update();
-  }
 
   // -----------------------
   //       EVENTI UI
@@ -256,53 +234,72 @@ export class PredictComponent implements OnInit, OnDestroy {
   onTickerChange(nextTicker: string): void {
     this.selectedTicker = nextTicker;
     this.resetPredictionView(); // azzera tabella + serie "Predicted"
-    this.loadStockData();       // ricarica SOLO storici del nuovo ticker
+    this.loadStockData(); // ricarica SOLO storici del nuovo ticker
   }
 
   private resetPredictionView(): void {
-    // Azzera oggetto predizione (nasconde la tabella grazie a *ngIf="prediction")
-    this.prediction = null;
+  this.prediction = null;
+  if (!this.chart) return;
 
-    // Rimuove eventuale dataset "Predicted" dal grafico mantenendo gli storici
-    if (!this.chart) return;
+  const histXY = this.stockData.map(p => ({ x: p.date.getTime(), y: p.close }));
+  const ds0 = this.chart.data.datasets[0] as any;
+  ds0.data = histXY;
 
-    const dsIndex = this.chart.data.datasets.findIndex((ds: any) => ds.label === 'Predicted');
-    if (dsIndex !== -1) {
-      this.chart.data.datasets.splice(dsIndex, 1);
-      this.chart.update();
-    }
-  }
+  // rimuovi eventuali stilizzazioni segment/point scriptable
+  ds0.segment = undefined;
+  ds0.pointRadius = 2;
+  ds0.pointHoverRadius = 5;
+
+  (this.chart.options!.scales!['x'] as any).min = this.fromDate2025.getTime();
+  (this.chart.options!.scales!['x'] as any).max = undefined;
+
+  this.chart.update();
+}
+
 
   async predict() {
-    try {
-      this.isLoading = true;
+  try {
+    this.isLoading = true;
 
-      const req = {
-        ticker: this.selectedTicker,
-        days_back: 365,   // opzionale
-        forecast_days: 5  // opzionale
-      };
+    const req = { ticker: this.selectedTicker, days_back: 365, forecast_days: 5 };
+    const res = await firstValueFrom(this.predictService.predictStock(req));
+    this.prediction = res;
 
-      // Usa il service corretto e firstValueFrom (no toPromise)
-      const res = await firstValueFrom(this.predictService.predictStock(req));
-      this.prediction = res;
+    if (!this.chart) return;
 
-      // aggiorna/aggiungi dataset “Predicted” nel grafico
-      if (this.chart) {
-        const oldIdx = this.chart.data.datasets.findIndex((ds: any) => ds.label === 'Predicted');
-        if (oldIdx !== -1) this.chart.data.datasets.splice(oldIdx, 1);
+    // Future dates come timestamp (forzate a mezzanotte locale per evitare slittamenti)
+    const futureTs = this.prediction.dates.map(d => new Date(`${d}T00:00:00`).getTime());
+    const futureXY: XYPoint[] = futureTs.map((t, i) => ({ x: t, y: this.prediction!.predicted[i] }));
 
-        this.chart.data.datasets.push({
-          label: 'Predicted',
-          data: this.prediction.predicted,
-          borderWidth: 2,
-          fill: false
-        });
+    // Storico attuale (già presente nel dataset 0)
+    const histXY = this.stockData.map(p => ({ x: p.date.getTime(), y: p.close }));
 
-        this.chart.update();
-      }
-    } finally {
-      this.isLoading = false;
-    }
+    // Merge in un unico dataset
+    const merged = [...histXY, ...futureXY];
+    const firstFutureX = futureTs[0];
+    const lastFutureX  = futureTs[futureTs.length - 1];
+
+    // Sostituisci il dataset 0 con quello unificato
+    const ds0 = this.chart.data.datasets[0] as any;
+    ds0.label = 'Prezzo';
+    ds0.data  = merged;
+
+    // Stile “dinamico” per la parte futura: tratteggio e niente marker
+    ds0.segment = {
+      borderDash: (ctx: any) => (ctx.p1.parsed.x >= firstFutureX ? [6, 4] : undefined)
+    };
+    ds0.pointRadius = (ctx: any) => (ctx.parsed.x >= firstFutureX ? 0 : 2);
+    ds0.pointHoverRadius = (ctx: any) => (ctx.parsed.x >= firstFutureX ? 0 : 5);
+
+    // Allarga l’asse X per includere TUTTI i giorni futuri (+ 1 giorno di margine visivo)
+    const pad = 24 * 60 * 60 * 1000; // 1 giorno in ms
+    (this.chart.options!.scales!['x'] as any).min = this.fromDate2025.getTime();
+    (this.chart.options!.scales!['x'] as any).max = lastFutureX + pad;
+
+    this.chart.update();
+  } finally {
+    this.isLoading = false;
   }
+}
+
 }
