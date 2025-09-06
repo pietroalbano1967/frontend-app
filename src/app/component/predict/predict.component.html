@@ -14,7 +14,6 @@
             {{isLoading ? 'Caricamento...' : 'Genera Predizione'}}
         </button>
 
-        <!-- Aggiungi controlli zoom per il grafico -->
         <div class="zoom-controls" *ngIf="chart">
             <button (click)="zoomIn()" title="Zoom In">+</button>
             <button (click)="zoomOut()" title="Zoom Out">-</button>
@@ -22,41 +21,101 @@
         </div>
     </div>
 
-    @if (prediction) {
-    <div class="prediction-info">
-        <h3>Predizioni per i prossimi {{prediction.predicted.length}} giorni</h3>
-        <p>Confidenza: {{prediction.confidence * 100 | number:'1.0-0'}}%</p>
-    </div>
-    }
+    <!-- Container principale per grafico e tabella affiancati -->
+    <div class="main-content">
+        <!-- Grafico a sinistra -->
+        <div class="chart-section">
+            @if (prediction) {
+            <div class="prediction-info">
+                <h3>Predizioni per i prossimi {{prediction.predicted.length}} giorni</h3>
+                <p>Confidenza: {{prediction.confidence * 100 | number:'1.0-0'}}%</p>
+            </div>
+            }
 
-    <!-- Container del grafico con overflow per lo zoom -->
-    <div class="chart-zoom-container">
-        <div class="chart-container" #chartContainer>
-            <canvas id="stock-chart"></canvas>
+            <div class="chart-zoom-container">
+                <div class="chart-container" #chartContainer>
+                    <canvas id="stock-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabella predizioni a destra -->
+        <div class="predictions-table-section" *ngIf="prediction">
+            <div class="predictions-header">
+                <h3>Dettaglio Predizioni</h3>
+                <span class="confidence-badge">
+                    Confidenza: {{prediction.confidence * 100 | number:'1.0-0'}}%
+                </span>
+            </div>
+
+            <div class="predictions-table-container">
+                <table class="predictions-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Previsione</th>
+                            <th>Variazione</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (item of getPredictionTableData(); track item.date; let i = $index) {
+                        <tr>
+                            <td>{{item.date}}</td>
+                            <td>{{item.predicted | currency:'EUR'}}</td>
+                            <td [class]="item.changeClass">
+                                {{item.changePercentage}}%
+                            </td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="predictions-summary">
+                <div class="summary-item">
+                    <span class="label">Giorni rialzisti:</span>
+                    <span class="value positive">{{getBullishDays()}}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Giorni ribassisti:</span>
+                    <span class="value negative">{{getBearishDays()}}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Media previsione:</span>
+                    <span class="value">{{getAveragePrediction() | currency:'EUR'}}</span>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Tabella dati storici in fondo -->
     @if (stockData.length) {
-    <div class="data-table">
-        <h3>Ultimi 10 giorni</h3>
-        <table>
-            <tr>
-                <th>Data</th>
-                <th>Apertura</th>
-                <th>Chiusura</th>
-                <th>Variazione</th>
-            </tr>
-            @for (day of stockData.slice(-10); track day.date) {
-            <tr>
-                <td>{{day.date}}</td>
-                <td>{{day.open | currency:'EUR'}}</td>
-                <td>{{day.close | currency:'EUR'}}</td>
-                <td [class]="day.close > day.open ? 'positive' : 'negative'">
-                    {{((day.close - day.open) / day.open * 100) | number:'1.2-2'}}%
-                </td>
-            </tr>
-            }
-        </table>
+    <div class="historical-data-section">
+        <h3>Dati Storici (Ultimi 10 giorni)</h3>
+        <div class="data-table">
+            <table>
+                <tr>
+                    <th>Data</th>
+                    <th>Apertura</th>
+                    <th>Chiusura</th>
+                    <th>Variazione</th>
+                    <th>Volume</th>
+                </tr>
+                @for (day of stockData.slice(-10).reverse(); track day.date) {
+                <tr>
+                    <!-- qui usiamo il date pipe -->
+                    <td>{{ day.date | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ day.open | currency:'EUR' }}</td>
+                    <td>{{ day.close | currency:'EUR' }}</td>
+                    <td [class]="day.close > day.open ? 'positive' : 'negative'">
+                        {{ ((day.close - day.open) / day.open * 100) | number:'1.2-2' }}%
+                    </td>
+                    <td>{{ day.volume | number }}</td>
+                </tr>
+                }
+
+            </table>
+        </div>
     </div>
     }
 </div>

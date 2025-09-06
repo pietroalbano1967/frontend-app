@@ -1,7 +1,7 @@
 /* Container principale */
 .container {
     padding: 20px;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     font-family: Arial, sans-serif;
     display: flex;
@@ -9,6 +9,129 @@
     gap: 20px;
 }
 
+/* Layout principale grafico + tabella */
+.main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+/* Sezione grafico */
+.chart-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Sezione tabella predizioni */
+.predictions-table-section {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+}
+
+.predictions-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.predictions-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 16px;
+}
+
+.confidence-badge {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.predictions-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.predictions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.predictions-table th {
+    background: #f8f9fa;
+    padding: 10px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.predictions-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.predictions-table tr:hover {
+    background: #f8f9fa;
+}
+
+.predictions-summary {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #f0f0f0;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.summary-item .label {
+    color: #6c757d;
+}
+
+.summary-item .value {
+    font-weight: 600;
+}
+
+.summary-item .positive {
+    color: #28a745;
+}
+
+.summary-item .negative {
+    color: #dc3545;
+}
+
+/* Sezione dati storici */
+.historical-data-section {
+    margin-top: 30px;
+}
+
+.historical-data-section h3 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+/* Resto del CSS esistente */
 .controls {
     margin: 20px 0;
     display: flex;
@@ -17,7 +140,77 @@
     flex-wrap: wrap;
 }
 
-/* Controlli zoom */
+select,
+button {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    background: white;
+}
+
+select {
+    min-width: 200px;
+}
+
+button {
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    border: none;
+}
+
+button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+    background: #0056b3;
+}
+
+.prediction-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    border-left: 4px solid #007bff;
+}
+
+.prediction-info h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.prediction-info p {
+    margin: 0;
+    color: #666;
+}
+
+.chart-zoom-container {
+    width: 100%;
+    height: 500px;
+    overflow: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 600px;
+    min-height: 400px;
+}
+
+#stock-chart {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
 .zoom-controls {
     display: flex;
     gap: 5px;
@@ -38,47 +231,8 @@
     background: #5a6268;
 }
 
-/* Container per lo zoom del grafico */
-.chart-zoom-container {
-    width: 100%;
-    height: 500px;
-    overflow: auto;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    resize: both;
-    /* Permette il ridimensionamento */
-    min-width: 300px;
-    min-height: 300px;
-}
-
-.chart-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-width: 600px;
-    /* Larghezza minima per lo zoom */
-    min-height: 400px;
-    /* Altezza minima per lo zoom */
-}
-
-#stock-chart {
-    display: block;
-    width: 100% !important;
-    height: 100% !important;
-}
-
-/* Resto del CSS rimane invariato */
 .data-table {
-    margin-top: 30px;
     overflow-x: auto;
-    width: 100%;
-}
-
-.data-table h3 {
-    margin-bottom: 15px;
-    color: #333;
 }
 
 table {
@@ -88,7 +242,6 @@ table {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 5px;
     overflow: hidden;
-    table-layout: fixed;
 }
 
 th,
@@ -96,25 +249,49 @@ td {
     padding: 12px 15px;
     text-align: right;
     border-bottom: 1px solid #ddd;
-    word-wrap: break-word;
+}
+
+th {
+    background: #f8f9fa;
+    font-weight: bold;
+    color: #333;
+}
+
+tr:hover {
+    background: #f5f5f5;
+}
+
+.positive {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.negative {
+    color: #dc3545;
+    font-weight: bold;
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+
+    .predictions-table-section {
+        position: static;
+    }
+}
+
 @media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
     .chart-zoom-container {
         height: 400px;
-        resize: none;
-        /* Disabilita resize su mobile */
     }
 
-    .chart-container {
-        min-width: 100%;
-        min-height: 350px;
-    }
-
-    .zoom-controls {
-        margin-left: 0;
-        width: 100%;
-        justify-content: center;
+    .predictions-table {
+        font-size: 12px;
     }
 }

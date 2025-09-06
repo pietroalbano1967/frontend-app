@@ -36,6 +36,9 @@ export interface PredictionHistory {
   providedIn: 'root'
 })
 export class PredictionsService {
+  predict(selectedTicker: string) {
+    throw new Error('Method not implemented.');
+  }
   private apiUrl = 'http://localhost:8000';
 
   constructor(private http: HttpClient) { }
